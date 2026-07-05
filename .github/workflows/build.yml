@@ -1,0 +1,114 @@
+name: build
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  test-and-build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: linux
+            # One asset per OS, named after the project so downloads are
+            # unambiguous for community members.
+            asset: trading-analyst-agent-linux
+          - os: macos-latest
+            name: mac
+            # Universal binary: runs on both Apple Silicon and Intel Macs.
+            asset: trading-analyst-agent-mac
+          - os: windows-latest
+            name: windows
+            asset: trading-analyst-agent-windows.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo registry & build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Format check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (deny warnings)
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Run tests
+        run: cargo test --all --verbose
+
+      # --- Release builds, renamed to the per-OS asset name ---
+
+      - name: Build release binary (Linux)
+        if: matrix.name == 'linux'
+        run: |
+          cargo build --release --locked
+          cp target/release/trade-analyzer "${{ matrix.asset }}"
+
+      - name: Build release binary (Windows)
+        if: matrix.name == 'windows'
+        shell: bash
+        run: |
+          cargo build --release --locked
+          cp target/release/trade-analyzer.exe "${{ matrix.asset }}"
+
+      - name: Build universal release binary (macOS)
+        if: matrix.name == 'mac'
+        run: |
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+          cargo build --release --locked --target aarch64-apple-darwin
+          cargo build --release --locked --target x86_64-apple-darwin
+          lipo -create -output "${{ matrix.asset }}" \
+            target/aarch64-apple-darwin/release/trade-analyzer \
+            target/x86_64-apple-darwin/release/trade-analyzer
+          file "${{ matrix.asset }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+          if-no-files-found: error
+
+  # On tagged releases (v*), attach the three binaries to a GitHub Release.
+  release:
+    name: release
+    needs: test-and-build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*
+          generate_release_notes: true

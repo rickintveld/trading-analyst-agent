@@ -1,0 +1,71 @@
+# Trade Analyst configuration.
+# Copy to ./config.toml (or pass --config <path>). Every key is optional —
+# omitted keys fall back to the defaults shown here.
+
+[general]
+# Informational label stored in report metadata. Trade times are read as-is.
+timezone = "UTC"
+
+[vault]
+# Obsidian vault root — created automatically if missing.
+path = "./TradingVault"
+analyses_dir = "Analyses"
+dashboard_dir = "Dashboard"
+templates_dir = "Templates"
+assets_dir = "Assets"
+
+[csv]
+# All format settings are auto-detected; set them only to override detection.
+# delimiter = ";"
+# date_format = "%d-%m-%Y"          # chrono format string
+# decimal_separator = ","
+# Ambiguous dates like 02/03/2026: prefer day-first (EU) parsing.
+prefer_day_first = true
+
+# Map canonical fields to your broker's exact header names when the built-in
+# alias detection doesn't find them. Canonical fields: date, time, symbol,
+# direction, entry, exit, position_size, risk, reward, rr, pnl, fees,
+# strategy, session, notes.
+[csv.mapping]
+# pnl = "Net P&L"
+# symbol = "Instrument"
+
+# Session windows in trade-local time, end-exclusive; a window may wrap
+# midnight ("23:00-07:00"). Used when no session column exists.
+[sessions]
+asia = "00:00-07:00"
+london = "07:00-13:00"
+overlap = "13:00-16:00"
+new_york = "16:00-22:00"
+
+[behavior]
+max_trades_per_day = 4              # day counts as overtraded at/above this
+revenge_window_minutes = 5          # re-entry after a loss within this window counts as revenge;
+                                    # tune to your timeframe (scalping 3-5, intraday 15-30, swing 60+)
+fomo_window_minutes = 15            # re-entry after a win within this window
+risk_violation_multiple = 2.0       # risk > multiple x median risk = violation
+consecutive_violation_threshold = 3
+tilt_consecutive_losses = 3         # same-day loss streak that defines tilt
+
+# Score component weights (proportional; normalized automatically).
+[scores.discipline]
+risk_consistency = 0.35
+overtrading_control = 0.25
+rule_adherence = 0.25
+strategy_focus = 0.15
+
+[scores.consistency]
+positive_day_ratio = 0.3
+weekly_stability = 0.3
+pnl_concentration = 0.2
+win_rate_stability = 0.2
+
+[scores.emotional_control]
+revenge_control = 0.3
+tilt_control = 0.3
+panic_exit_control = 0.2
+loss_reaction = 0.2
+
+[output]
+# Archive the exchange JSON in <vault>/Assets/exchange/ next to each report.
+write_exchange_json = true

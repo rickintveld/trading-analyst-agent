@@ -1,0 +1,32 @@
+[package]
+name = "trade-analyst"
+version = "0.1.0"
+edition = "2021"
+description = "Deterministic trading analytics engine + AI performance coach exchange format"
+license = "MIT"
+repository = "https://github.com/rickintveld/trading-analyst-agent"
+default-run = "trade-analyzer"
+
+[[bin]]
+name = "trade-analyzer"
+path = "src/main.rs"
+
+[lib]
+name = "trade_analyst"
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive"] }
+csv = "1"
+indexmap = { version = "2", features = ["serde"] }
+rayon = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+toml = "0.8"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

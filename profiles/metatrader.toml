@@ -1,0 +1,16 @@
+# MetaTrader 4/5 account-history export.
+# Columns: Ticket, Open (datetime), Type, Volume, Symbol, Price, SL, TP,
+#          Close (datetime), Price, Swap, Commissions, Profit, Pips, ...
+# Note: auto-detection already handles this format; the profile exists as a
+# pin against header drift and as the reference example for new profiles.
+date_format = "%Y-%m-%d %H:%M:%S"
+
+[mapping]
+date = "Open"            # open datetime (provides trade time for sessions)
+direction = "Type"       # buy / sell
+position_size = "Volume"
+symbol = "Symbol"
+entry = "col:5"          # first "Price" column
+exit = "col:9"           # second "Price" column
+pnl = "Profit"
+fees = "Commissions"
