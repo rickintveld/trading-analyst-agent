@@ -10,16 +10,20 @@ chains the engine, the csv-mapping workflow and the coach workflow in a fixed
 order. The Rust engine calculates everything; AI only maps columns and
 interprets results.
 
-## Step 1 — Resolve the engine binary
+## Step 1 — Resolve the engine binary (always freshest)
 
-In order, use the first that exists:
-1. `scripts/bin/trade-analyzer` (`.exe` on Windows) — the downloaded release
+First, best-effort update: run `scripts/update.sh` (Windows:
+`powershell -ExecutionPolicy Bypass -File scripts/update.ps1`). It is cheap —
+it compares the installed `scripts/bin` version against the latest release
+tag and only downloads when outdated or missing. A failure (no release
+published yet / offline) is NOT fatal; continue with what exists.
+
+Then use the first that exists:
+1. `scripts/bin/trade-analyzer` (`.exe` on Windows) — now the latest release
 2. `target/release/trade-analyzer` — locally built
-3. Neither present: run `scripts/update.sh` (Windows:
-   `powershell -ExecutionPolicy Bypass -File scripts/update.ps1`) to fetch the
-   latest release into `scripts/bin/`. If the download fails (no release yet /
-   offline) and a Rust toolchain exists, fall back to
-   `cargo build --release` and use `target/release/trade-analyzer`.
+3. Neither: `cargo build --release` (requires a Rust toolchain) and use
+   `target/release/trade-analyzer`. If that's impossible too, stop and tell
+   the user to download a release binary into `scripts/bin/`.
 
 Call the resolved binary `$TA` below.
 

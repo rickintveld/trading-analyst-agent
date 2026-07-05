@@ -18,6 +18,20 @@ if ($Tag -eq "latest") {
     $Url = "https://github.com/$Repo/releases/download/$Tag/$Asset"
 }
 
+# Skip the download when the installed binary already matches the release tag.
+if (($Tag -eq "latest") -and (Test-Path $Dest)) {
+    try {
+        $Resolved = (Invoke-WebRequest -Uri "https://github.com/$Repo/releases/latest" `
+            -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Headers.Location
+        $ResolvedTag = if ($Resolved) { ($Resolved -split "/tag/")[-1] } else { "" }
+        $Installed = (& $Dest --version) -split " " | Select-Object -Last 1
+        if ($ResolvedTag -and $Installed -and ("v$Installed" -eq $ResolvedTag)) {
+            Write-Host "up to date: $Dest ($ResolvedTag)"
+            exit 0
+        }
+    } catch { } # fall through to a fresh download
+}
+
 Write-Host "downloading $Asset ($Tag) from $Repo ..."
 New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
 $Tmp = "$Dest.download"
