@@ -1,0 +1,9 @@
+/target
+/TradingVault/*
+!/TradingVault/.obsidian
+/scripts/bin/
+config.toml
+*.csv
+!tests/fixtures/*.csv
+!examples/*.csv
+.DS_Store
