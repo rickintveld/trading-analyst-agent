@@ -19,6 +19,8 @@ CSV ──► Rust engine ──► chart datasets ──► Obsidian dashboard 
 
 ## Quickstart
 
+> **Not using Claude Code?** See [`docs/standalone-usage.md`](docs/standalone-usage.md) for a step-by-step guide to running the engine on its own — where to put the release binary, how to call it, and how the Obsidian vault is created.
+
 **No Rust required** — download the latest release binary for your OS into `scripts/bin/`:
 
 ```bash
