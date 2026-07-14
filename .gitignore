@@ -1,6 +1,9 @@
 /target
 /TradingVault/*
 !/TradingVault/.obsidian
+# Per-user Obsidian UI state (open panes, window size, recent files) — not shared.
+/TradingVault/.obsidian/workspace.json
+/TradingVault/.obsidian/workspace-mobile.json
 /scripts/bin/
 config.toml
 *.csv
